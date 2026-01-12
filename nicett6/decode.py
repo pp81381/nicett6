@@ -99,7 +99,9 @@ def _decode_web_pos_or_ack_response(
         raise InvalidResponseError()
     if args[4] != "FFFF" or args[5] != "FF":
         raise InvalidResponseError()
-    tt_addr = TTBusDeviceAddress(hex_arg_to_int(args[1]), hex_arg_to_int(args[2]))
+    tt_addr = TTBusDeviceAddress(
+        hex_arg_to_int(args[1], False), hex_arg_to_int(args[2])
+    )
     pos = pct_arg_to_int(args[3])
     return factory(tt_addr, pos)
 

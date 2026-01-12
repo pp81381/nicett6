@@ -61,6 +61,14 @@ class TestDecoding(unittest.TestCase):
             self.assertEqual(res.tt_addr, TTBusDeviceAddress(0x03, 0x04))
             self.assertEqual(res.pos, 500)
 
+    def test_decode_web_ack2(self):
+        """Web ack for device 0A where apparently the leading zero is missing"""
+        res = Decode.decode_line_bytes(b"POS # A 04 1000 FFFF FF" + self.TEST_EOL)
+        self.assertIsInstance(res, PctAckResponse)
+        if isinstance(res, PctAckResponse):
+            self.assertEqual(res.tt_addr, TTBusDeviceAddress(0x0A, 0x04))
+            self.assertEqual(res.pos, 1000)
+
     def test_decode_web_response1(self):
         """Web response"""
         res = Decode.decode_line_bytes(b"POS * 03 04 0500 FFFF FF" + self.TEST_EOL)

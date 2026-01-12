@@ -24,6 +24,10 @@ class TestValidationAndConversion(TestCase):
         with self.assertRaises(ValueError):
             hex_arg_to_int("100")
 
+    def test_hex_arg_variable(self):
+        self.assertEqual(hex_arg_to_int("A", False), 10)
+        self.assertEqual(hex_arg_to_int("0A", False), 10)
+
     def test_pct_arg(self):
         self.assertEqual(pct_arg_to_int("0000"), 0)
         self.assertEqual(pct_arg_to_int("0500"), 500)
