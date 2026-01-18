@@ -19,6 +19,6 @@ class WebPosManager(AsyncObserver):
         self.writer_manager = writer_manager
         self.web_on = web_on
 
-    async def update(self, device: AsyncObservable) -> None:
-        if isinstance(device, TT6CoverEmulator) and self.web_on:
-            await self.writer_manager.write_all(device.fmt_pos_msg())
+    async def update(self, observable: AsyncObservable) -> None:
+        if isinstance(observable, TT6CoverEmulator) and self.web_on:
+            await self.writer_manager.write_all(observable.fmt_pos_msg())

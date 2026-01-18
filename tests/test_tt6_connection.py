@@ -39,9 +39,10 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
         return conn._protocol
 
     @classmethod
-    def get_transport(cls, conn: TT6Connection) -> asyncio.Transport:
+    def get_mocktransport(cls, conn: TT6Connection) -> AsyncMock:
         transport = cls.get_protocol(conn)._transport
         assert transport is not None
+        assert isinstance(transport, AsyncMock)
         return transport
 
     async def test_reader(self):
@@ -62,7 +63,9 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
             writer = conn.get_writer()
             assert isinstance(writer, TT6Writer)
             await writer.send_web_on()
-            self.get_transport(conn).write.assert_called_once_with(b"WEB_ON" + RCV_EOL)
+            self.get_mocktransport(conn).write.assert_called_once_with(
+                b"WEB_ON" + RCV_EOL
+            )
 
 
 class TestOpenConnection(IsolatedAsyncioTestCase):

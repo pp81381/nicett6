@@ -58,6 +58,7 @@ class TestConnection(IsolatedAsyncioTestCase):
         self.assertEqual(p.buf.eol, RCV_EOL)
         conn.close()
         self.assertFalse(conn.is_connected)
+        assert isinstance(t, AsyncMock)
         t.close.assert_called_once_with()
 
 
@@ -101,9 +102,10 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
         return self.conn._protocol
 
     @property
-    def transport(self) -> asyncio.Transport:
+    def mocktransport(self) -> AsyncMock:
         transport = self.protocol._transport
         assert transport is not None
+        assert isinstance(transport, AsyncMock)
         return transport
 
     async def test_no_readers(self):
@@ -153,7 +155,7 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
     async def test_writer(self):
         writer = self.conn.get_writer()
         await writer.write(self.TEST_MESSAGE)
-        self.transport.write.assert_called_once_with(self.TEST_MESSAGE)
+        self.mocktransport.write.assert_called_once_with(self.TEST_MESSAGE)
 
     async def test_multiple_writes(self):
         log = MagicMock()
@@ -169,7 +171,7 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
         def write_side_effect(msg):
             log("write", msg)
 
-        self.transport.write.side_effect = write_side_effect
+        self.mocktransport.write.side_effect = write_side_effect
 
         writer = self.conn.get_writer()
         with patch("asyncio.sleep", side_effect=sleep_side_effect):
@@ -222,5 +224,5 @@ class TestReaderAndWriter(IsolatedAsyncioTestCase):
         await asyncio.sleep(0.1)
         self.protocol.data_received(data3)
         messages = await task
-        self.transport.write.assert_called_once_with(dummy_request)
+        self.mocktransport.write.assert_called_once_with(dummy_request)
         self.assertEqual(messages, [data1, data2, data3])

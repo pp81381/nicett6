@@ -19,10 +19,12 @@ async def make_test_web_pos_mgr(web_on: bool) -> WebPosManager:
 class TestWebPosManager(IsolatedAsyncioTestCase):
     async def test_web_on(self):
         web_pos_manager = await make_test_web_pos_mgr(True)
-        web_pos_manager.writer_manager.write_all.assert_awaited_once_with(
-            "POS * 02 04 1000 FFFF FF"
-        )
+        writer_manager = web_pos_manager.writer_manager
+        assert isinstance(writer_manager, AsyncMock)
+        writer_manager.write_all.assert_awaited_once_with("POS * 02 04 1000 FFFF FF")
 
     async def test_web_off(self):
         web_pos_manager = await make_test_web_pos_mgr(False)
-        web_pos_manager.writer_manager.write_all.assert_not_awaited()
+        writer_manager = web_pos_manager.writer_manager
+        assert isinstance(writer_manager, AsyncMock)
+        writer_manager.write_all.assert_not_awaited()

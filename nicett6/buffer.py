@@ -15,6 +15,6 @@ class MessageBuffer:
             iX = self.buf.find(self.eol)
             if iX == -1:
                 break
-            messages.append(self.buf[: iX + len(self.eol)])
+            messages.append(bytes(self.buf[: iX + len(self.eol)]))
             del self.buf[: iX + len(self.eol)]
         return messages

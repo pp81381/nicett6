@@ -109,8 +109,8 @@ class SerialProtocol(asyncio.Protocol, Generic[T]):
         self._transport = transport
         self.connection_made_event.set()
 
-    def data_received(self, chunk: bytes) -> None:
-        messages: List[bytes] = self.buf.append_chunk(chunk)
+    def data_received(self, data: bytes) -> None:
+        messages: List[bytes] = self.buf.append_chunk(data)
         for msg in messages:
             self.readers.message_received(msg)
 

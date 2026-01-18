@@ -48,9 +48,11 @@ class TestControllerQuit(IsolatedAsyncioTestCase):
             reader,
             writer,
         )
-        assert self.controller._server is not None
-        self.controller._server.close.assert_called_once_with()
-        self.controller._server.wait_closed.assert_awaited_once_with()
+        mock_server = self.controller._server
+        assert mock_server is not None
+        assert isinstance(mock_server, AsyncMock)
+        mock_server.close.assert_called_once_with()
+        mock_server.wait_closed.assert_awaited_once_with()
         writer.close.assert_called_once()
 
 
