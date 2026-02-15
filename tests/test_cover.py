@@ -317,3 +317,171 @@ class TestWaitForMotionToComplete(IsolatedAsyncioTestCase):
             await wait_for_motion_to_complete([cover])
             self.assertAlmostEqual(sleeper.offset, 2.8)
             self.assertFalse(cover.is_moving)
+
+
+class TestCoverReversed(IsolatedAsyncioTestCase):
+    def setUp(self):
+        self.sleeper = MockSleepInstant()
+        pc_patcher = patch("nicett6.cover.perf_counter", self.sleeper.perf_counter)
+        sleep_patcher = patch("nicett6.cover.asyncio_sleep", self.sleeper.sleep)
+        self.mock_perf_counter = pc_patcher.start()
+        self.mock_sleep = sleep_patcher.start()
+        self.addCleanup(pc_patcher.stop)
+        self.addCleanup(sleep_patcher.stop)
+        self.cover = Cover("Test", 0.8, inverse_pos=True)
+
+    async def test1(self):
+        self.assertEqual(self.cover.pos, 0)
+        self.assertAlmostEqual(self.cover.drop, 0)
+
+    async def test2(self):
+        await self.cover.set_pos(1000)
+        self.assertAlmostEqual(self.cover.drop, 0.8)
+
+    async def test3(self):
+        await self.cover.set_pos(500)
+        self.assertAlmostEqual(self.cover.drop, 0.4)
+
+    async def test4(self):
+        with self.assertRaises(ValueError):
+            await self.cover.set_pos(-1)
+
+    async def test5(self):
+        with self.assertRaises(ValueError):
+            await self.cover.set_pos(1001)
+
+    async def test6(self):
+        self.assertEqual(self.cover.is_moving, False)
+        self.assertEqual(self.cover.is_fully_up, True)
+
+    async def test7(self):
+        await self.cover.set_pos(500)
+        self.assertEqual(self.cover.is_fully_up, False)
+        self.assertEqual(self.cover.is_moving, True)
+        self.assertEqual(self.cover.is_going_down, True)
+        self.assertEqual(self.cover.is_going_up, False)
+        await self.mock_sleep(Cover.MOVEMENT_THRESHOLD_INTERVAL + 0.1)
+        self.assertEqual(self.cover.is_fully_up, False)
+        self.assertEqual(self.cover.is_moving, False)
+        self.assertEqual(self.cover.is_going_down, False)
+        self.assertEqual(self.cover.is_going_up, False)
+        await self.cover.set_pos(500)
+        # Not really a movement but we don't know whether
+        # it's the first of a sequence of pos messages
+        self.assertEqual(self.cover.is_moving, True)
+        await self.cover.set_pos(1000)
+        self.assertEqual(self.cover.is_fully_down, False)
+        self.assertEqual(self.cover.is_moving, True)
+        self.assertEqual(self.cover.is_going_down, True)
+        self.assertEqual(self.cover.is_going_up, False)
+        await self.mock_sleep(Cover.MOVEMENT_THRESHOLD_INTERVAL + 0.1)
+        self.assertEqual(self.cover.is_fully_down, True)
+        self.assertEqual(self.cover.is_moving, False)
+        self.assertEqual(self.cover.is_going_down, False)
+        self.assertEqual(self.cover.is_going_up, False)
+
+    async def test10(self):
+        self.assertTrue(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_pos(800)
+        self.assertEqual(self.cover._prev_pos, 0)
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertTrue(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.mock_sleep(Cover.MOVEMENT_THRESHOLD_INTERVAL + 0.01)
+        self.assertEqual(self.cover._prev_pos, 0)  #!!
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_idle()
+        self.assertEqual(self.cover._prev_pos, 800)  # !!
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.moved()  # We are moving but we don't know the direction yet
+        self.assertEqual(self.cover._prev_pos, 800)
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+
+    async def test11(self):
+        self.assertTrue(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_going_up()
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertTrue(self.cover.is_going_up)
+
+    async def test12(self):
+        self.assertTrue(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_going_down()
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertTrue(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+
+    async def test13(self):
+        self.assertTrue(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_target_pos_hint(500)
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertTrue(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+
+    async def test14(self):
+        await self.cover.set_pos(1000)
+        await self.mock_sleep(Cover.MOVEMENT_THRESHOLD_INTERVAL + 0.01)
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertFalse(self.cover.is_going_up)
+        await self.cover.set_target_pos_hint(500)
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_moving)
+        self.assertFalse(self.cover.is_going_down)
+        self.assertTrue(self.cover.is_going_up)
+
+    async def test15(self):
+        await self.cover.set_pos(1000)
+        await self.cover.set_idle()
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertTrue(self.cover.is_fully_down)
+
+    async def test16(self):
+        await self.cover.set_pos(500)
+        await self.cover.set_idle()
+        self.assertFalse(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_fully_down)
+
+    async def test17(self):
+        await self.cover.set_pos(0)
+        await self.cover.set_idle()
+        self.assertTrue(self.cover.is_fully_up)
+        self.assertFalse(self.cover.is_fully_down)
+
+    async def test18(self):
+        with self.assertLogs("nicett6.cover", level=logging.WARNING) as cm:
+            self.cover.log("Test Logging", logging.WARNING)
+        self.assertEqual(
+            cm.output,
+            [
+                "WARNING:nicett6.cover:Test Logging; name: Test; max_drop: 0.8; pos: 0; "
+                "_prev_pos: 0; is_moving: False; is_going_down: False; is_going_up: False; "
+                "is_fully_down: False; is_fully_up: True; "
+            ],
+        )

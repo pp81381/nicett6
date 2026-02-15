@@ -43,3 +43,26 @@ class TestCoverMovement(IsolatedAsyncioTestCase):
         await self.cover.move_up()
         await mover
         self.assertEqual(self.cover.drop, 0)
+
+
+class TestInverseCoverMovement(IsolatedAsyncioTestCase):
+    """Test Inverse Cover movement"""
+
+    def setUp(self):
+        self.cover = TT6CoverEmulator(
+            "screen", MagicMock(), 0.01, 1.77, 0.08, 0, inverse_pos=True
+        )
+
+    async def test_step_movements(self):
+        self.assertEqual(self.cover.pos, 0)
+        self.assertAlmostEqual(self.cover.drop, 0.0)
+        await self.cover.move_to_pos(100)
+        self.assertEqual(self.cover.pos, 100)
+        await self.cover.move_up()
+        self.assertEqual(self.cover.pos, 0)
+        await self.cover.move_down_step()
+        self.assertEqual(self.cover.pos, 5)
+        self.assertEqual(self.cover.drop, 0.01)
+        await self.cover.move_up_step()
+        self.assertEqual(self.cover.pos, 0)
+        self.assertEqual(self.cover.drop, 0.0)
