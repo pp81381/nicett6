@@ -1,6 +1,38 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+requires = ["setuptools>=80", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
 local_scheme = "dirty-tag"
+
+[tool.setuptools.packages.find]
+exclude = ["tests*"]
+
+[project]
+name = "nicett6-pp81381"
+description = "Nice TT6 tubular motor controller APIs"
+readme = "README.md"
+authors = [
+  {name = "Phil Porter"},
+]
+dependencies = [
+  "pyserial>=3.5",
+  "pyserial-asyncio-fast>=0.16"
+]
+license = "MIT"
+license-files = ["LICENSE"]
+dynamic = ["version"]
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Operating System :: OS Independent",
+    "Topic :: Home Automation"
+]
+
+[project.urls]
+Homepage = "https://github.com/pp81381/nicett6"
