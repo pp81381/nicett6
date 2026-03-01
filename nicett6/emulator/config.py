@@ -15,8 +15,8 @@ from nicett6.ttbus_device import TTBusDeviceAddress
 
 
 def tt6cover_from_dict(d):
-    inverse_pos = d.get("inverse_pos", False)
-    default_initial_pos = 0 if inverse_pos else 1000
+    inverted_endpoints = d.get("inverted_endpoints", False)
+    default_initial_pos = 0 if inverted_endpoints else 1000
     cover = TT6CoverEmulator(
         d["name"],
         TTBusDeviceAddress(d["address"], d["node"]),
@@ -24,7 +24,7 @@ def tt6cover_from_dict(d):
         d["max_drop"],
         d["speed"],
         d.get("initial_pos", default_initial_pos),
-        inverse_pos,
+        inverted_endpoints,
     )
     if "preset_pos_1" in d:
         cover.init_preset(PRESET_POS_1, d["preset_pos_1"])

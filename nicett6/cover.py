@@ -18,19 +18,21 @@ class Cover(AsyncObservable):
     MOVEMENT_THRESHOLD_INTERVAL: ClassVar[float] = 2.7
     THRESHOLD = 10
 
-    def __init__(self, name: str, max_drop: float, inverse_pos: bool = False) -> None:
+    def __init__(
+        self, name: str, max_drop: float, inverted_endpoints: bool = False
+    ) -> None:
         super().__init__()
         self.name = name
         self.max_drop = max_drop
-        self.fully_up_pos = 0 if inverse_pos else 1000
-        self.fully_down_pos = 1000 if inverse_pos else 0
-        self._pos: int = self.fully_up_pos
+        self.endpoint_up = 0 if inverted_endpoints else 1000
+        self.endpoint_down = 1000 if inverted_endpoints else 0
+        self._pos: int = self.endpoint_up
         self._prev_movement = perf_counter() - self.MOVEMENT_THRESHOLD_INTERVAL
         self._prev_pos: int = self._pos
         self._notifier = PostMovementNotifier(self)
         self.idle_event = Event()
         self.idle_event.set()
-        self.inverse_pos = inverse_pos
+        self.inverted_endpoints = inverted_endpoints
 
     def __repr__(self):
         return (
@@ -64,7 +66,7 @@ class Cover(AsyncObservable):
         Set Position
 
         Valid range is 0 to 1000
-        (self.fully_up_pos to self.fully_down_pos depending on inverse_pos)
+        (self.endpoint_up to self.endpoint_down depending on inverted_endpoints)
         """
         prev_pos = self._pos  # Preserve state in case of exception
         self._pos = check_pos(f"{self.name} pos", value)
@@ -73,7 +75,7 @@ class Cover(AsyncObservable):
 
     def is_above(self, pos1: int, pos2: int) -> bool:
         """Returns True if pos1 is above pos2"""
-        if self.inverse_pos:
+        if self.inverted_endpoints:
             return pos1 < pos2
         else:
             return pos1 > pos2
@@ -81,7 +83,7 @@ class Cover(AsyncObservable):
     @property
     def drop(self) -> float:
         """Drop in length units from 0.0 when fully up to max_drop when fully down"""
-        if self.inverse_pos:
+        if self.inverted_endpoints:
             return self._pos * self.max_drop / 1000.0
         else:
             return (1000 - self._pos) * self.max_drop / 1000.0
@@ -116,17 +118,17 @@ class Cover(AsyncObservable):
 
     @property
     def one_step_up(self) -> int:
-        return (self.fully_up_pos - self.fully_down_pos) // abs(
-            self.fully_up_pos - self.fully_down_pos
+        return (self.endpoint_up - self.endpoint_down) // abs(
+            self.endpoint_up - self.endpoint_down
         )
 
     @property
     def top_threshold(self) -> int:
-        return self.fully_up_pos - self.THRESHOLD * self.one_step_up
+        return self.endpoint_up - self.THRESHOLD * self.one_step_up
 
     @property
     def bottom_threshold(self) -> int:
-        return self.fully_down_pos + self.THRESHOLD * self.one_step_up
+        return self.endpoint_down + self.THRESHOLD * self.one_step_up
 
     @property
     def is_fully_up(self) -> bool:

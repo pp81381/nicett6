@@ -240,9 +240,11 @@ class TestCoverNotifer(IsolatedAsyncioTestCase):
 
         sleeper = MockSleepInstant()
         manual_sleeper = MockSleepManual()
-        with patch("nicett6.cover.asyncio_sleep", sleeper.sleep) as mock_sleep, patch(
-            "nicett6.cover.perf_counter", sleeper.perf_counter
-        ), patch("nicett6.cover.notifier_asyncio_sleep", manual_sleeper.sleep):
+        with (
+            patch("nicett6.cover.asyncio_sleep", sleeper.sleep) as mock_sleep,
+            patch("nicett6.cover.perf_counter", sleeper.perf_counter),
+            patch("nicett6.cover.notifier_asyncio_sleep", manual_sleeper.sleep),
+        ):
             cover = Cover("Test", 0.8)
 
             self.assertTrue(cover.is_fully_up)
@@ -306,8 +308,9 @@ class TestCoverNotifer(IsolatedAsyncioTestCase):
 class TestWaitForMotionToComplete(IsolatedAsyncioTestCase):
     async def test_wait_for_motion_to_complete(self):
         sleeper = MockSleepInstant()
-        with patch("nicett6.cover.asyncio_sleep", sleeper.sleep), patch(
-            "nicett6.cover.perf_counter", sleeper.perf_counter
+        with (
+            patch("nicett6.cover.asyncio_sleep", sleeper.sleep),
+            patch("nicett6.cover.perf_counter", sleeper.perf_counter),
         ):
             cover = Cover("Test", 0.8)
             self.assertFalse(cover.is_moving)
@@ -319,7 +322,7 @@ class TestWaitForMotionToComplete(IsolatedAsyncioTestCase):
             self.assertFalse(cover.is_moving)
 
 
-class TestCoverReversed(IsolatedAsyncioTestCase):
+class TestCoverInverted(IsolatedAsyncioTestCase):
     def setUp(self):
         self.sleeper = MockSleepInstant()
         pc_patcher = patch("nicett6.cover.perf_counter", self.sleeper.perf_counter)
@@ -328,7 +331,7 @@ class TestCoverReversed(IsolatedAsyncioTestCase):
         self.mock_sleep = sleep_patcher.start()
         self.addCleanup(pc_patcher.stop)
         self.addCleanup(sleep_patcher.stop)
-        self.cover = Cover("Test", 0.8, inverse_pos=True)
+        self.cover = Cover("Test", 0.8, inverted_endpoints=True)
 
     async def test1(self):
         self.assertEqual(self.cover.pos, 0)

@@ -63,7 +63,7 @@ class TT6CoverEmulator(AsyncObservable):
     The unadjusted_max_drop is specified in metres (the actual drop will be rounded down to a fixed number of steps)
     The speed is specified in metres/sec
     The initial_pos is specified in thousandths (1000 = fully up; 0 = fully down)
-    The inverse_pos flag can be set if the position is reported with 0 = fully down and 1000 = fully up
+    The inverted_endpoints flag can be set if the position is reported with 0 = fully down and 1000 = fully up
 
     As an example, a screen might have a 2.0m drop and the mask might have a 0.5m drop
     Both covers might move at 0.05 metres/sec in steps of 0.01 metres
@@ -81,7 +81,7 @@ class TT6CoverEmulator(AsyncObservable):
         unadjusted_max_drop: float,
         speed: float,
         initial_pos: int,
-        inverse_pos: bool = False,
+        inverted_endpoints: bool = False,
     ) -> None:
         super().__init__()
         self.name = name
@@ -99,11 +99,11 @@ class TT6CoverEmulator(AsyncObservable):
         self._secs_per_pos_increment = self.step_len / (
             self.speed * self.pos_increment_per_step
         )
-        self.inverse_pos = inverse_pos
+        self.inverted_endpoints = inverted_endpoints
 
     @property
     def drop(self) -> float:
-        if self.inverse_pos:
+        if self.inverted_endpoints:
             return self.step_len * self.pos / self.pos_increment_per_step
         else:
             return self.step_len * (1000 - self.pos) / self.pos_increment_per_step
@@ -205,18 +205,18 @@ class TT6CoverEmulator(AsyncObservable):
 
     async def move_down(self) -> None:
         """Move to lower limit"""
-        await self.move_to_pos(1000 if self.inverse_pos else 0)
+        await self.move_to_pos(1000 if self.inverted_endpoints else 0)
 
     async def move_up(self) -> None:
         """Move to upper limit"""
-        await self.move_to_pos(0 if self.inverse_pos else 1000)
+        await self.move_to_pos(0 if self.inverted_endpoints else 1000)
 
     async def move_down_step(self) -> None:
-        direction = 1 if self.inverse_pos else -1
+        direction = 1 if self.inverted_endpoints else -1
         await self._move_increment(direction * self.pos_increment_per_step, False)
 
     async def move_up_step(self) -> None:
-        direction = -1 if self.inverse_pos else 1
+        direction = -1 if self.inverted_endpoints else 1
         await self._move_increment(direction * self.pos_increment_per_step, False)
 
     def init_preset(self, preset_name: str, pos: int) -> None:

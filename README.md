@@ -279,7 +279,7 @@ Parameter|Description
 --|--
 `name`|name of cover (for logging purposes)
 `max_drop`|maximum drop of cover in metres
-`inverse_pos`|fully up is 0 and fully down is 1000
+`inverted_endpoints`|fully up is 0 and fully down is 1000
 
 <br>
 Example:
@@ -460,13 +460,21 @@ Sample config:
             "speed": 0.08
         },
         {
-            "address": 4,
+            "address": 10,
+            "node": 4,
+            "name": "blind",
+            "step_len": 0.01,
+            "max_drop": 2.0,
+            "speed": 0.08
+        },
+        {
+            "address": 11,
             "node": 4,
             "name": "inverse blind",
             "step_len": 0.01,
             "max_drop": 2.0,
             "speed": 0.08,
-            "inverse_pos": true
+            "inverted_endpoints": true
         }
     ]
 }
