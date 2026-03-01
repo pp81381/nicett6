@@ -15,19 +15,23 @@ class TestConfig(TestCase):
         config = build_config(["-f", self.filename])
         self.assertEqual(config["port"], 50200)
         self.assertEqual(config["web_on"], False)
-        self.assertEqual(len(config["covers"]), 3)
+        self.assertEqual(len(config["covers"]), 4)
         screen = config["covers"][0]
         self.assertEqual(screen.name, "screen")
         self.assertAlmostEqual(screen.step_len, 0.01)
         self.assertAlmostEqual(screen.unadjusted_max_drop, 1.77)
         self.assertAlmostEqual(screen.speed, 0.08)
         self.assertAlmostEqual(screen.pos, 1000)
-        self.assertFalse(screen.inverse_pos)
+        self.assertFalse(screen.inverted_endpoints)
         mask = config["covers"][1]
         self.assertEqual(mask.name, "mask")
-        self.assertFalse(mask.inverse_pos)
+        self.assertFalse(mask.inverted_endpoints)
         blind = config["covers"][2]
-        self.assertTrue(blind.inverse_pos)
+        self.assertEqual(blind.name, "blind")
+        self.assertFalse(blind.inverted_endpoints)
+        inverse_blind = config["covers"][3]
+        self.assertEqual(inverse_blind.name, "inverse blind")
+        self.assertTrue(inverse_blind.inverted_endpoints)
 
     def test_build_config2(self):
         config = build_config(["-f", self.filename, "-w", "-p", "50300"])
@@ -36,7 +40,7 @@ class TestConfig(TestCase):
 
     def test_build_config3(self):
         config = build_config(["-f", self.filename, "-i", "screen", "750"])
-        self.assertEqual(len(config["covers"]), 3)
+        self.assertEqual(len(config["covers"]), 4)
         screen = config["covers"][0]
         self.assertAlmostEqual(screen.pos, 750)
 
